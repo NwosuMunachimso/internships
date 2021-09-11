@@ -45,7 +45,7 @@ export class UsersService {
      }, HttpStatus.INTERNAL_SERVER_ERROR)}
     }
   }
-
+//assuming user changed the password
   async update(id:number, updateUserDto: UpdateUserDto): Promise<UpdateResult>{
     try{
       if (updateUserDto.passwordHash!= ''){
@@ -187,6 +187,22 @@ export class UsersService {
     } catch (error) {
 
     }
+  }
+
+  async addDepartmentById(userId: number, departmentId: number): Promise<void> {
+    return await this.userRepository.createQueryBuilder()
+    .relation(User, 'department')
+    .of(userId)
+    .add(departmentId)
+  }
+
+  // remove Departments by id
+
+  async removeDepartmentById(userId: number, departmentId: number): Promise<void> {
+    return await this.userRepository.createQueryBuilder()
+    .relation(User, 'department')
+    .of(userId)
+    .remove(departmentId)
   }
 
 
