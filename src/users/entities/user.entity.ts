@@ -1,7 +1,8 @@
+import { Department } from "src/departments/entities/department.entity";
 import { CountryList, Gender } from "src/global/app.enum";
 import { Role } from "src/roles/entities/role.entity";
 import { UserProfile } from "src/user-profiles/entities/user-profile.entity";
-import {Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 import { Employee } from '../../employees/entities/employee.entity'
 
 @Entity()
@@ -100,21 +101,26 @@ export class User{
     @Column({ nullable: true, select: false })
     otpSecret: string;
 
+    @Column({ nullable: true })
+    departmentId: number;
+
+
     /* for refresh token save after successful login/
     @Column({ select: false, nullable: true })
     public refreshTokenHash: string;*/
 
     @OneToOne(() => Employee, employee => employee.user) // specify inverse side as a second parameter
-    @JoinColumn()
     employee: Employee;
 
     @OneToOne(() => UserProfile, userProfile => userProfile.user) // specify inverse side as a second parameter
-    @JoinColumn()
     userProfile: UserProfile;
 
     @ManyToMany(() => Role, role => role.users)
-    @JoinTable()
     roles: Role[];
+
+    @ManyToOne(()=> Department, department => department.users)
+    @JoinColumn({name: 'departmentId'})
+    department: Department;
     
 }
 
