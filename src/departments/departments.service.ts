@@ -5,7 +5,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Department } from './entities/department.entity';
-
+import { logger } from '../main';
 @Injectable()
 export class DepartmentsService {
 
@@ -14,7 +14,7 @@ export class DepartmentsService {
     private readonly departmentRepository: Repository<Department>
   ) { }
 
-  async create(createDepartmentDto: CreateDepartmentDto): Promise<Department> {
+  async create(createDepartmentDto: CreateDepartmentDto, req:any): Promise<Department> {
 
     try {
 
@@ -23,6 +23,20 @@ export class DepartmentsService {
       return await this.departmentRepository.save(newDept)
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
@@ -41,12 +55,26 @@ export class DepartmentsService {
 
   }
 
-  async findAll(): Promise<Department[]> {
+  async findAll(req:any): Promise<Department[]> {
     try {
 
       return await this.departmentRepository.find()
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -55,12 +83,26 @@ export class DepartmentsService {
     }
   }
 
-  async findOne(id: number): Promise<Department> {
+  async findOne(id: number, req:any): Promise<Department> {
     try {
 
       return await this.departmentRepository.findOne(id)
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -69,10 +111,24 @@ export class DepartmentsService {
     }
   }
 
-  async update(id: number, updateDepartmentDto: UpdateDepartmentDto): Promise<UpdateResult> {
+  async update(id: number, updateDepartmentDto: UpdateDepartmentDto, req: any): Promise<UpdateResult> {
     try {
       return await this.departmentRepository.update(id, { ...updateDepartmentDto })
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
@@ -91,12 +147,24 @@ export class DepartmentsService {
     }
   }
 
-  async remove(id: number): Promise<DeleteResult> {
+  async remove(id: number, req:any): Promise<DeleteResult> {
     try {
       return await this.departmentRepository.delete(id)
     } catch (error) {
-
-       
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
         throw new HttpException({
           status: HttpStatus.INTERNAL_SERVER_ERROR,

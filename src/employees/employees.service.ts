@@ -5,6 +5,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { Employee } from './entities/employee.entity';
+import { logger } from '../main';
 
 @Injectable()
 export class EmployeesService {
@@ -13,7 +14,7 @@ export class EmployeesService {
     private readonly employeeRepository: Repository<Employee>
   ) { }
 
-  async create(createEmployeeDto: CreateEmployeeDto): Promise<Employee> {
+  async create(createEmployeeDto: CreateEmployeeDto, req:any): Promise<Employee> {
 
     try {
 
@@ -23,6 +24,20 @@ export class EmployeesService {
 
     } catch (error) {
 
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
         throw new HttpException({
@@ -40,12 +55,26 @@ export class EmployeesService {
 
   }
 
-  async findAll(): Promise<Employee[]> {
+  async findAll(req:any): Promise<[Employee[], number]> {
     try {
 
-      return await this.employeeRepository.find()
+      return await this.employeeRepository.findAndCount()
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -54,12 +83,52 @@ export class EmployeesService {
     }
   }
 
-  async findOne(id: number): Promise<Employee> {
+  async findAllWithOptions(findOptions:string, req:any): Promise<[Employee[], number]>{
+    try{
+      return await this.employeeRepository.findAndCount(JSON.parse(findOptions));
+    }catch (error){
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: `There was a problem assessing employee data:${error.message}`
+        }, HttpStatus.INTERNAL_SERVER_ERROR)
+
+    }
+  }
+
+  async findOne(id: number, req:any): Promise<Employee> {
     try {
 
       return await this.employeeRepository.findOne(id)
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -68,10 +137,24 @@ export class EmployeesService {
     }
   }
 
-  async update(id: number, updateEmployeeDto: UpdateEmployeeDto): Promise<UpdateResult> {
+  async update(id: number, updateEmployeeDto: UpdateEmployeeDto, req:any): Promise<UpdateResult> {
     try {
       return await this.employeeRepository.update(id, { ...updateEmployeeDto })
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
@@ -90,10 +173,24 @@ export class EmployeesService {
     }
   }
 
-  async remove(id: number): Promise<DeleteResult> {
+  async remove(id: number,req:any): Promise<DeleteResult> {
     try {
       return await this.employeeRepository.delete(id)
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -106,20 +203,54 @@ export class EmployeesService {
 
   // Relationships
 
-  async addDepartmentById(employeeId: number, departmentId: number): Promise<void> {
-    return await this.employeeRepository.createQueryBuilder()
-      .relation(Employee, 'department')
-      .of(employeeId)
-      .add(departmentId)
+  async addDepartmentById(employeeId: number, departmentId: number, req:any): Promise<void> {
+    try {
+      return await this.employeeRepository.createQueryBuilder()
+        .relation(Employee, 'department')
+        .of(employeeId)
+        .add(departmentId)
+  } catch (error) {
+    logger.error(error.message, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
+    logger.debug(error.stack, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
   }
+}
 
   // remove Departments by id
 
-  async removeDepartmentById(employeeId: number, departmentId: number): Promise<void> {
-    return await this.employeeRepository.createQueryBuilder()
-      .relation(Employee, 'department')
-      .of(employeeId)
-      .remove(departmentId)
+  async removeDepartmentById(employeeId: number, departmentId: number, req:any): Promise<void> {
+    try{
+      return await this.employeeRepository.createQueryBuilder()
+        .relation(Employee, 'department')
+        .of(employeeId)
+        .remove(departmentId)
+  }catch (error) {
+    logger.error(error.message, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
+    logger.debug(error.stack, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
   }
+}
 
 }

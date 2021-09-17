@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Post, Req } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -6,8 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
 import { PG_UNIQUE_CONSTRAINT_VIOLATION } from 'src/global/error.codes';
-import { number } from 'yargs';
-
+import { logger } from '../main';
 @Injectable()
 export class UsersService {
 
@@ -16,8 +15,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>
 
   ) { }
-
-  async create(createUserDto: CreateUserDto): Promise<User>{
+  
+  async create(createUserDto: CreateUserDto,@Req() req: any): Promise<User>{
    try{
      const newUser = this.userRepository.create(createUserDto);
      //hash the password in the dto sent before we now save it
@@ -29,7 +28,30 @@ export class UsersService {
      return user; //so it returns to us the saved user
      
 
-   }catch (error){ 
+   }catch (error){
+      // capture
+      // the error message,
+      // time message is logged,
+      // the request method,
+      // the device the client connected through,
+      // which url endpoint led to the error,
+      // the address of the clients machine
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+
+      // debug and error.stack gives more. it says at which line the errors occur
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
      //here we are testing for constraint error
      if (error && error.code === PG_UNIQUE_CONSTRAINT_VIOLATION){
       //if the above is the error code then do the below 
@@ -46,7 +68,7 @@ export class UsersService {
     }
   }
 //assuming user changed the password
-  async update(id:number, updateUserDto: UpdateUserDto): Promise<UpdateResult>{
+  async update(id:number, updateUserDto: UpdateUserDto, req: any): Promise<UpdateResult>{
     try{
       if (updateUserDto.passwordHash!= ''){
         await bcrypt.hash(updateUserDto.passwordHash, 10).then((hash: string) => {
@@ -55,6 +77,21 @@ export class UsersService {
     } 
     return await this.userRepository.update(id,{... updateUserDto})
   }catch (error){ 
+    logger.error(error.message, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
+    logger.debug(error.stack, {
+      time: new Date(),
+      request_method: req.method,
+      endnpoint: req.url,
+      client: req.socket.remoteAddress,
+      agent: req.headers['user-agent'],
+    });
+    
     //here we are testing for constraint error
     if (error && error.code === PG_UNIQUE_CONSTRAINT_VIOLATION){
      //if the above is the error code then do the below 
@@ -72,10 +109,24 @@ export class UsersService {
   }
 }
  
-  async findAll(): Promise<User[]>{
+  async findAll(req: any): Promise<[User[], number]>{
     try{
-      return await this.userRepository.find();
+      return await this.userRepository.findAndCount();
     }catch (error){
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         error: `There was a problem assessing user data:${error.message}`
@@ -84,12 +135,52 @@ export class UsersService {
     }
   }
 
-  async remove(id: number): Promise<DeleteResult> {
+  async findAllWithOptions(findOptions:string, req: any): Promise<[User[], number]>{
+    try{
+      return await this.userRepository.findAndCount(JSON.parse(findOptions));
+    }catch (error){
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: `There was a problem assessing user data:${error.message}`
+        }, HttpStatus.INTERNAL_SERVER_ERROR)
+
+    }
+  }
+
+  async remove(id: number,req: any): Promise<DeleteResult> {
     try {
 
       return await this.userRepository.delete(id);
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
 
@@ -100,10 +191,24 @@ export class UsersService {
   }
 
 
-  async findOne(id:number) {
+  async findOne(id:number, req: any) {
     try{
       return await this.userRepository.findOne(id);
     }catch (error){
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         error: `There was a problem assessing user data:${error.message}`
@@ -175,7 +280,7 @@ export class UsersService {
       .set(userProfileId)
     } catch (error) {
 
-    }
+    }  
   }
 
   async unsetUserProfileById(userId: number, userProfileId: number): Promise<void> {

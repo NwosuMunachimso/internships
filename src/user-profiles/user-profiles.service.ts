@@ -5,7 +5,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UserProfile } from './entities/user-profile.entity';
-
+import { logger } from '../main';
 @Injectable()
 export class UserProfilesService {
   constructor(
@@ -13,7 +13,7 @@ export class UserProfilesService {
     private readonly userProfileRepository: Repository<UserProfile>
   ) { }
 
-  async create(createUserProfileDto: CreateUserProfileDto): Promise<UserProfile> {
+  async create(createUserProfileDto: CreateUserProfileDto, req:any): Promise<UserProfile> {
 
     try {
 
@@ -22,6 +22,20 @@ export class UserProfilesService {
       return await this.userProfileRepository.save(newUserProfile)
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
@@ -40,7 +54,7 @@ export class UserProfilesService {
 
   }
 
-  async findAll(): Promise<UserProfile[]> {
+  async findAll(req:any): Promise<UserProfile[]> {
     try {
 
       return await this.userProfileRepository.find()
@@ -54,12 +68,27 @@ export class UserProfilesService {
     }
   }
 
-  async findOne(id: number): Promise<UserProfile> {
+  async findOne(id: number, req:any): Promise<UserProfile> {
     try {
 
       return await this.userProfileRepository.findOne(id)
 
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -68,11 +97,24 @@ export class UserProfilesService {
     }
   }
 
-  async update(id: number, updateUserProfileDto: UpdateUserProfileDto): Promise<UpdateResult> {
+  async update(id: number, updateUserProfileDto: UpdateUserProfileDto, req:any): Promise<UpdateResult> {
     try {
       return await this.userProfileRepository.update(id, { ...updateUserProfileDto })
     } catch (error) {
-
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
       if (error && error.code == PG_UNIQUE_CONSTRAINT_VIOLATION) {
 
         throw new HttpException({
@@ -90,10 +132,24 @@ export class UserProfilesService {
     }
   }
 
-  async remove(id: number): Promise<DeleteResult> {
+  async remove(id: number,req:any): Promise<DeleteResult> {
     try {
       return await this.userProfileRepository.delete(id)
     } catch (error) {
+      logger.error(error.message, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
+      logger.debug(error.stack, {
+        time: new Date(),
+        request_method: req.method,
+        endnpoint: req.url,
+        client: req.socket.remoteAddress,
+        agent: req.headers['user-agent'],
+      });
 
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
