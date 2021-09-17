@@ -15,7 +15,7 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@Query() query:string, req: any):Promise<[User[], number]> {
+  findAll(@Query() query:string, @Req() req: any):Promise<[User[], number]> {
     for (const queryKey of Object.keys(query)){
       if (queryKey=="find-options"){
         return this.usersService.findAllWithOptions(decodeURI(query[queryKey]), req);
@@ -25,7 +25,7 @@ export class UsersController {
 }
 
   @Get(':id')
-  findOne(@Param('id') id: string, req: any) {
+  findOne(@Param('id') id: string, @Req() req: any) {
     return this.usersService.findOne(+id, req);
   }
 
@@ -33,7 +33,7 @@ export class UsersController {
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-    req: any,
+    @Req() req: any,
   ) {
     return this.usersService.update(+id, updateUserDto, req);
   }
@@ -51,7 +51,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, req: any) {
+  remove(@Param('id') id: string, @Req() req: any) {
     return this.usersService.remove(+id, req);
   }
 }
